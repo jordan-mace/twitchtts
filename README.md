@@ -17,3 +17,17 @@ Checkout the repo, go into the directory, and create a `.env` file.
 You will need to set the `REACT_APP_AWS_ACCESS_KEY`, `REACT_APP_AWS_SECRET_KEY`, and `REACT_APP_AWS_REGION` variables.
 
 Then run `npm run start` to run locally.
+
+### Docker
+
+To run the docker image, simply run
+
+```
+docker run -e REACT_APP_AWS_ACCESS_KEY= -e REACT_APP_AWS_SECRET_KEY=your-secret-key REACT_APP_AWS_REGION=your-region -p 3000:3000 twitchtts
+```
+
+And the site will be available at http://localhost:3000/
+
+### Docker Compose
+
+Checkout the `docker-compose.yml` file as an example.

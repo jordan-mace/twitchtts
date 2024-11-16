@@ -1,0 +1,9 @@
+services:
+  twitchtts:
+    image: jordz0005/twitchtts
+    environment:
+      - REACT_APP_AWS_SECRET_KEY
+      - REACT_APP_AWS_ACCESS_KEY
+      - REACT_APP_AWS_REGION
+    ports:
+      - 3000:3000
