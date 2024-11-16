@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-
 import { VoiceId } from "@aws-sdk/client-polly";
 import {
   SynthesizeSpeechCommand,
@@ -9,18 +8,22 @@ import {
 import TwitchListener, { TwitchMessage } from "./TwitchListener";
 import { pollyClient } from "./Polly";
 import styled from "styled-components";
-import { TextField } from "@mui/material";
-
-const TwitchContext = React.createContext("");
+import { Twitch, TwitchContext } from "./TwitchContext";
+import TwitchSettings from "./TwitchSettings";
 
 const Box = styled("div")`
   flex-direction: row;
   width: 30rem;
+  margin-top: 5rem;
   margin-left: 40rem;
 `;
 
-const ChatBox = styled(TextField)`
+const ChatBox = styled("ul")`
   width: 100%;
+  height: 500px;
+  overflow-y: scroll;
+  padding-left: 0;
+  list-style-type: none;
 `;
 
 interface TwitchUserVoice {
@@ -30,14 +33,28 @@ interface TwitchUserVoice {
 
 function App() {
   const [twitchChat] = useState<string[]>([]);
-  const [pollyVoices, setPollyVoices] = useState<(string | undefined)[]>([]);
+  const [lastId, setLastId] = useState<string | undefined>(undefined);
+  const [twitch, setTwitch] = useState<Twitch>({
+    ModsOnly: false,
+    DonatorVoice: false,
+  });
+  const [standardVoices, setStandardVoices] = useState<(string | undefined)[]>(
+    []
+  );
+  const [generativeVoices, setGenerativeVoices] = useState<
+    (string | undefined)[]
+  >([]);
   const [twitchUserVoices] = useState<TwitchUserVoice[]>([]);
 
-  const TTS = (message: string, pollyVoice: string | undefined) => {
+  const TTS = (
+    message: string,
+    isSubbed: boolean | undefined,
+    pollyVoice: string | undefined
+  ) => {
     pollyClient
       .send(
         new SynthesizeSpeechCommand({
-          Engine: "standard",
+          Engine: isSubbed ? "generative" : "standard",
           OutputFormat: "mp3",
           Text: message,
           VoiceId: pollyVoice as VoiceId,
@@ -53,7 +70,7 @@ function App() {
         var blob = new Blob([array], { type: "audio/mp3" });
         var url = window.URL.createObjectURL(blob);
         audio.src = url;
-        audio.play();
+        audio.play().then(() => audio.remove());
       });
   };
 
@@ -68,48 +85,80 @@ function App() {
         })
       )
       .then((result) => {
-        if (result.Voices) setPollyVoices(result.Voices.map((x) => x.Id));
+        if (result.Voices) setStandardVoices(result.Voices.map((x) => x.Id));
+        else console.log("Could not get voices from Polly!");
+      });
+
+    pollyClient
+      .send(
+        new DescribeVoicesCommand({
+          Engine: "generative",
+          LanguageCode: "en-US",
+          IncludeAdditionalLanguageCodes: true,
+        })
+      )
+      .then((result) => {
+        if (result.Voices) setGenerativeVoices(result.Voices.map((x) => x.Id));
         else console.log("Could not get voices from Polly!");
       });
   }, []);
 
-  const processMessage = (message: TwitchMessage) => {
+  const pickRandomVoice = (
+    username: string | undefined,
+    Voices: (string | undefined)[]
+  ) => {
+    const randomVoice = Math.floor(Math.random() * Voices.length + 1);
+    const voice = {
+      username: username,
+      pollyVoice: Voices[randomVoice],
+    };
+    return voice;
+  };
+
+  const getVoice = (message: TwitchMessage) => {
     const username = message.username;
+    const isSubbed = message.isSubbed;
+
     var voiceToUse = twitchUserVoices.find((x) => x.username === username);
 
+    if (voiceToUse === undefined) {
+      voiceToUse = pickRandomVoice(
+        username,
+        isSubbed ? generativeVoices : standardVoices
+      );
+      console.log(`Giving ${username} the ${voiceToUse.pollyVoice} voice`);
+      twitchUserVoices.push(voiceToUse);
+    }
+
+    if (voiceToUse.pollyVoice === undefined)
+      voiceToUse.pollyVoice = standardVoices[0];
+
+    return voiceToUse;
+  };
+
+  const processMessage = (message: TwitchMessage) => {
+    setLastId(message.id);
     twitchChat.push(`${message.username}: ${message.message}`);
 
     if (!message.play) return;
 
-    if (voiceToUse === undefined) {
-      const randomVoice = Math.floor(Math.random() * pollyVoices.length) + 1;
-      const voice = {
-        username: username,
-        pollyVoice: pollyVoices[randomVoice],
-      };
-      voiceToUse = voice;
-      console.log(`Giving ${username} the ${voiceToUse.pollyVoice} voice`);
-      twitchUserVoices.push(voice);
-    }
-
-    TTS(message.message, voiceToUse.pollyVoice);
+    TTS(message.message, message.isSubbed, getVoice(message).pollyVoice);
   };
 
   return (
     <>
       <Box>
-        <TwitchContext.Provider value={twitchChat.join()}>
+        <TwitchContext.Provider value={twitch}>
           <div className="App">
             <TwitchListener
               onMessage={(message: TwitchMessage) => processMessage(message)}
             />
-            <ChatBox
-              margin="dense"
-              variant="outlined"
-              rows={8}
-              multiline
-              value={twitchChat}
-            />
+            <TwitchSettings onChange={(twitch: Twitch) => setTwitch(twitch)} />
+            <ChatBox>
+              {twitchChat.map((x) => (
+                <li key={lastId}>{x}</li>
+              ))}
+            </ChatBox>
           </div>
         </TwitchContext.Provider>
       </Box>
