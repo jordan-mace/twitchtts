@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import { Client } from "tmi.js";
-import { Styled } from "styled-components";
+import styled from "styled-components";
+import Button from "@mui/material/Button";
+import { Box, TextField } from "@mui/material";
 
 export interface TwitchMessage {
   username: string | undefined;
   message: string;
   play: boolean;
 }
+
+const UsernameBox = styled(TextField)`
+  width: 100%;
+`;
+const ListenButton = styled(Button)`
+  width: 100%;
+  margin-bottom: 3rem;
+`;
 
 export interface TwitchListenerProps {
   onMessage: (message: TwitchMessage) => void;
@@ -51,13 +61,21 @@ const TwitchListener = (props: TwitchListenerProps) => {
   }, [tmiClient]);
 
   return (
-    <>
-      <p>Enter your Twitch username</p>
-      <input onChange={(event) => setTwitchName(event.target.value)} />
-      <button disabled={buttonDisabled} onClick={startListening}>
+    <Box sx={{ "& .MuiTextField-root": { m: 1, width: "25ch" } }}>
+      <h2>Enter your Twitch username</h2>
+      <UsernameBox
+        fullWidth
+        variant="outlined"
+        onChange={(event) => setTwitchName(event.target.value)}
+      />
+      <ListenButton
+        variant="contained"
+        disabled={buttonDisabled}
+        onClick={startListening}
+      >
         Start listening
-      </button>
-    </>
+      </ListenButton>
+    </Box>
   );
 };
 

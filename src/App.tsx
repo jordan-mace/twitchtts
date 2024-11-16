@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 
 import { VoiceId } from "@aws-sdk/client-polly";
@@ -9,8 +8,20 @@ import {
 } from "@aws-sdk/client-polly";
 import TwitchListener, { TwitchMessage } from "./TwitchListener";
 import { pollyClient } from "./Polly";
+import styled from "styled-components";
+import { TextField } from "@mui/material";
 
 const TwitchContext = React.createContext("");
+
+const Box = styled("div")`
+  flex-direction: row;
+  width: 30rem;
+  margin-left: 40rem;
+`;
+
+const ChatBox = styled(TextField)`
+  width: 100%;
+`;
 
 interface TwitchUserVoice {
   username: string | undefined;
@@ -64,13 +75,13 @@ function App() {
 
   const processMessage = (message: TwitchMessage) => {
     const username = message.username;
-    var voiceToUse = twitchUserVoices.find((x) => x.username == username);
+    var voiceToUse = twitchUserVoices.find((x) => x.username === username);
 
     twitchChat.push(`${message.username}: ${message.message}`);
 
     if (!message.play) return;
 
-    if (voiceToUse == undefined) {
+    if (voiceToUse === undefined) {
       const randomVoice = Math.floor(Math.random() * pollyVoices.length) + 1;
       const voice = {
         username: username,
@@ -85,16 +96,24 @@ function App() {
   };
 
   return (
-    <TwitchContext.Provider value={twitchChat.join()}>
-      <div className="App">
-        <header className="App-header">
-          <TwitchListener
-            onMessage={(message: TwitchMessage) => processMessage(message)}
-          />
-          <textarea value={twitchChat} />
-        </header>
-      </div>
-    </TwitchContext.Provider>
+    <>
+      <Box>
+        <TwitchContext.Provider value={twitchChat.join()}>
+          <div className="App">
+            <TwitchListener
+              onMessage={(message: TwitchMessage) => processMessage(message)}
+            />
+            <ChatBox
+              margin="dense"
+              variant="outlined"
+              rows={8}
+              multiline
+              value={twitchChat}
+            />
+          </div>
+        </TwitchContext.Provider>
+      </Box>
+    </>
   );
 }
 
