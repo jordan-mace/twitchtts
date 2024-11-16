@@ -6,8 +6,9 @@ Adding TTS support to your Twitch stream! Simply plug your username in and liste
 
 - Realistic voices via AWS Polly
 - Each Twitch chatter is assigned a random voice
+- Ability to restrict TTS to moderators
+- Manually override a chatter's assigned voice (coming soon)
 - Ability to give donators/subscribers a higher quality voice (coming soon)
-- Ability to restrict TTS to moderators (coming soon)
 
 ## Getting started
 
