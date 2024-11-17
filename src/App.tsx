@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Component, useEffect, useState } from "react";
 import "./App.css";
 import { VoiceId } from "@aws-sdk/client-polly";
 import {
@@ -18,7 +18,7 @@ const Box = styled("div")`
   margin-left: 40rem;
 `;
 
-const ChatBox = styled("ul")`
+const ChatBox = styled("div")`
   width: 100%;
   height: 500px;
   overflow-y: scroll;
@@ -31,9 +31,8 @@ interface TwitchUserVoice {
   pollyVoice: string | undefined;
 }
 
-function App() {
-  const [twitchChat] = useState<string[]>([]);
-  const [lastId, setLastId] = useState<string | undefined>(undefined);
+const App: React.FC = () => {
+  const [twitchChat, setTwitchChat] = useState<TwitchMessage[]>([]);
   const [twitch, setTwitch] = useState<Twitch>({
     ModsOnly: false,
     DonatorVoice: false,
@@ -44,7 +43,10 @@ function App() {
   const [generativeVoices, setGenerativeVoices] = useState<
     (string | undefined)[]
   >([]);
-  const [twitchUserVoices] = useState<TwitchUserVoice[]>([]);
+  const [twitchUserVoices, setTwitchVoices] = useState<TwitchUserVoice[]>([]);
+
+  const chatLogs: TwitchMessage[] = [];
+  const voices: TwitchUserVoice[] = [];
 
   const TTS = (
     message: string,
@@ -127,18 +129,19 @@ function App() {
         isSubbed ? generativeVoices : standardVoices
       );
       console.log(`Giving ${username} the ${voiceToUse.pollyVoice} voice`);
-      twitchUserVoices.push(voiceToUse);
     }
 
     if (voiceToUse.pollyVoice === undefined)
       voiceToUse.pollyVoice = standardVoices[0];
 
+    voices.push(voiceToUse);
+    setTwitchVoices(voices);
     return voiceToUse;
   };
 
   const processMessage = (message: TwitchMessage) => {
-    setLastId(message.id);
-    twitchChat.push(`${message.username}: ${message.message}`);
+    chatLogs.push(message);
+    setTwitchChat(chatLogs);
 
     if (!message.play) return;
 
@@ -156,7 +159,9 @@ function App() {
             <TwitchSettings onChange={(twitch: Twitch) => setTwitch(twitch)} />
             <ChatBox>
               {twitchChat.map((x) => (
-                <li key={lastId}>{x}</li>
+                <p key={x.id}>
+                  {x.username}: {x.message}
+                </p>
               ))}
             </ChatBox>
           </div>
@@ -164,6 +169,6 @@ function App() {
       </Box>
     </>
   );
-}
+};
 
 export default App;

@@ -43,6 +43,12 @@ const TwitchListener = (props: TwitchListenerProps) => {
     );
   };
 
+  const stopListening = () => {
+    if (tmiClient === null) return;
+    tmiClient.disconnect();
+    setButtonDisabled(false);
+  };
+
   const isMod = (tags: ChatUserstate) =>
     tags.mod ||
     tags.badges?.broadcaster === "1" ||
@@ -91,6 +97,13 @@ const TwitchListener = (props: TwitchListenerProps) => {
         onClick={startListening}
       >
         Start listening
+      </ListenButton>
+      <ListenButton
+        variant="contained"
+        disabled={!buttonDisabled}
+        onClick={stopListening}
+      >
+        Stop listening
       </ListenButton>
     </Box>
   );
