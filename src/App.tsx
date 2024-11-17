@@ -1,6 +1,6 @@
-import { Component, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-import { Voice, VoiceId } from "@aws-sdk/client-polly";
+import { Voice } from "@aws-sdk/client-polly";
 import {
   SynthesizeSpeechCommand,
   DescribeVoicesCommand,
@@ -10,16 +10,10 @@ import { pollyClient } from "./Polly";
 import styled from "styled-components";
 import { Twitch, TwitchContext } from "./TwitchContext";
 import TwitchSettings from "./TwitchSettings";
-
-const Box = styled("div")`
-  flex-direction: row;
-  width: 30rem;
-  margin-top: 5rem;
-  margin-left: 40rem;
-`;
+import VoiceSettings from "./VoiceSettings";
+import { Container } from "@mui/material";
 
 const ChatBox = styled("div")`
-  width: 100%;
   height: 500px;
   overflow-y: scroll;
   padding-left: 0;
@@ -115,15 +109,15 @@ const App: React.FC = () => {
   }, []);
 
   const pickRandomVoice = (isSubbed: boolean, Voices: Voice[]) => {
-    if (isSubbed) {
+    if (isSubbed && twitch.DonatorVoice) {
       const filtered = Voices.filter((x) =>
         x.SupportedEngines?.includes("generative")
       );
-      const randomVoice = Math.floor(Math.random() * filtered.length + 1);
+      const randomVoice = Math.floor(Math.random() * filtered.length - 1);
       return filtered[randomVoice];
     }
 
-    const randomVoice = Math.floor(Math.random() * Voices.length + 1);
+    const randomVoice = Math.floor(Math.random() * Voices.length - 1);
     return Voices[randomVoice];
   };
 
@@ -133,7 +127,6 @@ const App: React.FC = () => {
 
     const isSubbed = message.isSubbed;
     const voice = twitchVoices[username];
-    console.log(`found voice ${voice?.Name} for ${username}`);
 
     if (voice === undefined) {
       var randomVoice = pickRandomVoice(isSubbed, pollyVoices);
@@ -144,6 +137,7 @@ const App: React.FC = () => {
       return randomVoice;
     }
 
+    console.log(`found voice ${voice.Name} for ${username}`);
     return voice;
   };
 
@@ -156,25 +150,35 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
-      <Box>
-        <TwitchContext.Provider value={twitch}>
-          <div className="App">
-            <TwitchListener
-              onMessage={(message: TwitchMessage) => processMessage(message)}
-            />
-            <TwitchSettings onChange={(twitch: Twitch) => setTwitch(twitch)} />
-            <ChatBox>
-              {twitchChat.map((x) => (
-                <p key={x.id}>
-                  {x.username}: {x.message}
-                </p>
-              ))}
-            </ChatBox>
+    <Container sx={{ mt: "5rem" }}>
+      <TwitchContext.Provider value={twitch}>
+        <div className="App">
+          <TwitchListener
+            onMessage={(message: TwitchMessage) => processMessage(message)}
+          />
+          <TwitchSettings onChange={(twitch: Twitch) => setTwitch(twitch)} />
+          <div style={{ flexDirection: "row", display: "flex" }}>
+            <div style={{ width: "50%" }}>
+              <VoiceSettings
+                pollyVoices={pollyVoices}
+                twitchVoices={twitchVoices}
+                onChange={(voices) => setTwitchVoices(voices)}
+              />
+            </div>
+            <div style={{ width: "50%" }}>
+              <h3>Chat</h3>
+              <ChatBox>
+                {twitchChat.map((x) => (
+                  <p key={x.id}>
+                    {x.username}: {x.message}
+                  </p>
+                ))}
+              </ChatBox>
+            </div>
           </div>
-        </TwitchContext.Provider>
-      </Box>
-    </>
+        </div>
+      </TwitchContext.Provider>
+    </Container>
   );
 };
 
