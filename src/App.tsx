@@ -1,6 +1,6 @@
 import { Component, useEffect, useState } from "react";
 import "./App.css";
-import { VoiceId } from "@aws-sdk/client-polly";
+import { Voice, VoiceId } from "@aws-sdk/client-polly";
 import {
   SynthesizeSpeechCommand,
   DescribeVoicesCommand,
@@ -26,40 +26,32 @@ const ChatBox = styled("div")`
   list-style-type: none;
 `;
 
-interface TwitchUserVoice {
-  username: string | undefined;
-  pollyVoice: string | undefined;
-}
-
 const App: React.FC = () => {
   const [twitchChat, setTwitchChat] = useState<TwitchMessage[]>([]);
   const [twitch, setTwitch] = useState<Twitch>({
     ModsOnly: false,
     DonatorVoice: false,
   });
-  const [standardVoices, setStandardVoices] = useState<(string | undefined)[]>(
-    []
-  );
-  const [generativeVoices, setGenerativeVoices] = useState<
-    (string | undefined)[]
-  >([]);
-  const [twitchUserVoices, setTwitchVoices] = useState<TwitchUserVoice[]>([]);
-
-  const chatLogs: TwitchMessage[] = [];
-  const voices: TwitchUserVoice[] = [];
+  const [pollyVoices, setPollyVoices] = useState<Voice[]>([]);
+  const [twitchVoices, setTwitchVoices] = useState<Record<string, Voice>>({});
 
   const TTS = (
     message: string,
     isSubbed: boolean | undefined,
-    pollyVoice: string | undefined
+    pollyVoice: Voice
   ) => {
+    if (pollyVoice.SupportedEngines === undefined) {
+      console.log(`Undefined engine for pollyVoice ${pollyVoice.Id}`);
+      return;
+    }
+
     pollyClient
       .send(
         new SynthesizeSpeechCommand({
-          Engine: isSubbed ? "generative" : "standard",
+          Engine: pollyVoice.SupportedEngines[0],
           OutputFormat: "mp3",
           Text: message,
-          VoiceId: pollyVoice as VoiceId,
+          VoiceId: pollyVoice.Id,
         })
       )
       .then((output) => {
@@ -78,6 +70,8 @@ const App: React.FC = () => {
 
   // Load Polly voices
   useEffect(() => {
+    var voices: Voice[] = [];
+
     pollyClient
       .send(
         new DescribeVoicesCommand({
@@ -87,7 +81,20 @@ const App: React.FC = () => {
         })
       )
       .then((result) => {
-        if (result.Voices) setStandardVoices(result.Voices.map((x) => x.Id));
+        if (result.Voices) voices.push(...result.Voices);
+        else console.log("Could not get voices from Polly!");
+      });
+
+    pollyClient
+      .send(
+        new DescribeVoicesCommand({
+          Engine: "neural",
+          LanguageCode: "en-US",
+          IncludeAdditionalLanguageCodes: true,
+        })
+      )
+      .then((result) => {
+        if (result.Voices) voices.push(...result.Voices);
         else console.log("Could not get voices from Polly!");
       });
 
@@ -100,52 +107,52 @@ const App: React.FC = () => {
         })
       )
       .then((result) => {
-        if (result.Voices) setGenerativeVoices(result.Voices.map((x) => x.Id));
+        if (result.Voices) voices.push(...result.Voices);
         else console.log("Could not get voices from Polly!");
       });
+
+    setPollyVoices(voices);
   }, []);
 
-  const pickRandomVoice = (
-    username: string | undefined,
-    Voices: (string | undefined)[]
-  ) => {
+  const pickRandomVoice = (isSubbed: boolean, Voices: Voice[]) => {
+    if (isSubbed) {
+      const filtered = Voices.filter((x) =>
+        x.SupportedEngines?.includes("generative")
+      );
+      const randomVoice = Math.floor(Math.random() * filtered.length + 1);
+      return filtered[randomVoice];
+    }
+
     const randomVoice = Math.floor(Math.random() * Voices.length + 1);
-    const voice = {
-      username: username,
-      pollyVoice: Voices[randomVoice],
-    };
-    return voice;
+    return Voices[randomVoice];
   };
 
   const getVoice = (message: TwitchMessage) => {
     const username = message.username;
+    if (username === undefined) return pollyVoices[0];
+
     const isSubbed = message.isSubbed;
+    const voice = twitchVoices[username];
+    console.log(`found voice ${voice?.Name} for ${username}`);
 
-    var voiceToUse = twitchUserVoices.find((x) => x.username === username);
-
-    if (voiceToUse === undefined) {
-      voiceToUse = pickRandomVoice(
-        username,
-        isSubbed ? generativeVoices : standardVoices
-      );
-      console.log(`Giving ${username} the ${voiceToUse.pollyVoice} voice`);
+    if (voice === undefined) {
+      var randomVoice = pickRandomVoice(isSubbed, pollyVoices);
+      console.log(`Giving ${username} the ${randomVoice.Name} voice`);
+      var newArray = twitchVoices;
+      newArray[username] = randomVoice;
+      setTwitchVoices(newArray);
+      return randomVoice;
     }
 
-    if (voiceToUse.pollyVoice === undefined)
-      voiceToUse.pollyVoice = standardVoices[0];
-
-    voices.push(voiceToUse);
-    setTwitchVoices(voices);
-    return voiceToUse;
+    return voice;
   };
 
   const processMessage = (message: TwitchMessage) => {
-    chatLogs.push(message);
-    setTwitchChat(chatLogs);
+    setTwitchChat((oldChat) => [...oldChat, message]);
 
     if (!message.play) return;
 
-    TTS(message.message, message.isSubbed, getVoice(message).pollyVoice);
+    TTS(message.message, message.isSubbed, getVoice(message));
   };
 
   return (
