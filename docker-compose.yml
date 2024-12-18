@@ -1,6 +1,6 @@
 services:
   twitchtts:
-    image: jordz0005/twitchtts
+    image: twitchtts
     environment:
       - REACT_APP_AWS_SECRET_KEY
       - REACT_APP_AWS_ACCESS_KEY

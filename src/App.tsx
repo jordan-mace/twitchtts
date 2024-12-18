@@ -12,6 +12,7 @@ import { Twitch, TwitchContext } from "./TwitchContext";
 import TwitchSettings from "./TwitchSettings";
 import VoiceSettings from "./VoiceSettings";
 import { Container } from "@mui/material";
+import React from "react";
 
 const ChatBox = styled("div")`
   height: 500px;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { MenuItem, Select } from "@mui/material";
 import { Voice } from "@aws-sdk/client-polly";
+import React from "react";
 
 export interface VoiceSettingsProps {
   pollyVoices: Voice[];

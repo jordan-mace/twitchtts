@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Button from "@mui/material/Button";
 import { Box, TextField } from "@mui/material";
 import { TwitchContext } from "./TwitchContext";
+import React from "react";
 
 export interface TwitchMessage {
   username: string | undefined;

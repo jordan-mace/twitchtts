@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { Twitch } from "./TwitchContext";
+import React from "react";
 
 export interface TwitchSettingsProps {
   onChange: (settings: Twitch) => void;
