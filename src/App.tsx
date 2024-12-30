@@ -145,6 +145,8 @@ const App: React.FC = () => {
     setTwitchChat((oldChat) => [...oldChat, message]);
 
     if (!message.play) return;
+    if (message.username === "Nightbot") return;
+    if (message.message.startsWith("!")) return;
 
     TTS(message.message, message.isSubbed, getVoice(message));
   };
