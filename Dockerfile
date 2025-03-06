@@ -1,7 +1,7 @@
 FROM node:slim
 
 COPY package.json . 
-COPY package-lock.json .
+COPY pnpm-lock.yaml .
 
 RUN npm install
 COPY tsconfig.json .
