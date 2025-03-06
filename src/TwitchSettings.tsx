@@ -12,15 +12,16 @@ const Label = styled(FormControlLabel)`
 `;
 
 const TwitchSettings = (props: TwitchSettingsProps) => {
+  const { onChange } = props;
   const [modsOnly, setModsOnly] = useState(false);
   const [donatorVoice, setDonatorVoice] = useState(false);
 
   useEffect(() => {
-    props.onChange({
+    onChange({
       DonatorVoice: donatorVoice,
       ModsOnly: modsOnly,
     });
-  }, [modsOnly, donatorVoice]);
+  }, [modsOnly, donatorVoice, onChange]);
 
   return (
     <>

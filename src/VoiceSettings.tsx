@@ -9,27 +9,26 @@ export interface VoiceSettingsProps {
 }
 
 const VoiceSettings = (props: VoiceSettingsProps) => {
+  const { twitchVoices, pollyVoices, onChange } = props;
   const [currentUser, setCurrentUser] = useState("");
   const [currentVoice, setCurrentVoice] = useState("");
-  const [voices, setVoices] = useState<Record<string, Voice>>(
-    props.twitchVoices
-  );
+  const [voices, setVoices] = useState<Record<string, Voice>>(twitchVoices);
 
   useEffect(() => {
     if (voices[currentUser] === undefined) return;
     if (voices[currentUser].Id === undefined) return;
     setCurrentVoice(voices[currentUser].Id ?? "");
-  }, [currentUser]);
+  }, [currentUser, voices]);
 
   useEffect(() => {
-    var newVoice = props.pollyVoices.find((x) => x.Id === currentVoice);
+    var newVoice = pollyVoices.find((x) => x.Id === currentVoice);
     if (newVoice === undefined) return;
 
     var newVoices = voices;
     newVoices[currentUser] = newVoice;
     setVoices(newVoices);
-    props.onChange(voices);
-  }, [currentVoice]);
+    onChange(voices);
+  }, [currentVoice, currentUser, pollyVoices, voices, onChange]);
 
   return Object.entries(voices).length > 0 ? (
     <>
