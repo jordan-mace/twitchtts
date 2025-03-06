@@ -26,7 +26,9 @@ export interface TwitchListenerProps {
 }
 
 const TwitchListener = (props: TwitchListenerProps) => {
+  const { onMessage } = props;
   const twitchSettings = useContext(TwitchContext);
+  const { ModsOnly } = twitchSettings;
   const [twitchName, setTwitchName] = useState("");
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [tmiClient, setTmiClient] = useState<null | Client>(null);
@@ -56,8 +58,8 @@ const TwitchListener = (props: TwitchListenerProps) => {
     tmiClient.connect();
     tmiClient.on("message", (channel, tags, message, self) => {
       if (self) return;
-      if (twitchSettings.ModsOnly && !isMod(tags)) return;
-      props.onMessage({
+      if (ModsOnly && !isMod(tags)) return;
+      onMessage({
         username: tags.username,
         id: tags.id,
         isSubbed: tags.subscriber ?? false,
@@ -66,7 +68,7 @@ const TwitchListener = (props: TwitchListenerProps) => {
       });
     });
     tmiClient.on("connected", () => {
-      props.onMessage({
+      onMessage({
         username: "SYSTEM",
         id: "connect",
         isSubbed: false,
@@ -75,7 +77,7 @@ const TwitchListener = (props: TwitchListenerProps) => {
       });
     });
     setButtonDisabled(true);
-  }, [tmiClient]);
+  }, [tmiClient, onMessage, ModsOnly]);
 
   return (
     <Box sx={{ "& .MuiTextField-root": { mb: 1 } }}>
