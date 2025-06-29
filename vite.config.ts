@@ -1,0 +1,11 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+    plugins: [react({
+        include: 'src/**/*.{js,jsx,ts,tsx}', // Include all JS/TS files in src
+    })],
+    build: {
+        outDir: 'build', // CRA's default build output
+    },
+});
