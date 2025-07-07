@@ -1,25 +1,32 @@
 FROM node:slim AS builder
 
+ARG VITE_AWS_REGION
+ARG VITE_AWS_ACCESS_KEY
+ARG VITE_AWS_SECRET_KEY
+
+# Install pnpm
+RUN npm install -g pnpm
+
+WORKDIR /app
+
 COPY package.json . 
 COPY pnpm-lock.yaml .
 
-RUN npm install
+RUN pnpm install
+
+# Copy configuration files
 COPY tsconfig.json .
 COPY index.html .
 COPY vite.config.ts .
+COPY tailwind.config.js .
+COPY postcss.config.js .
+
+# Copy source files
 COPY /public ./public
 COPY /src ./src
 
-WORKDIR /build
+RUN pnpm run build
 
-RUN npm run build
+FROM nginx:alpine AS runner
 
-FROM node:slim AS runner
-
-RUN npm install --global serve
-
-COPY --from=builder /build ./dist
-
-EXPOSE 3000
-
-ENTRYPOINT npx serve -s dist
+COPY --from=builder /app/build /usr/share/nginx/html

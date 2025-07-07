@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
-import styled from "styled-components";
-import { Checkbox, FormControlLabel } from "@mui/material";
 import { Twitch } from "./TwitchContext";
 
 export interface TwitchSettingsProps {
   onChange: (settings: Twitch) => void;
 }
-
-const Label = styled(FormControlLabel)`
-  width: 100%;
-`;
 
 const TwitchSettings = (props: TwitchSettingsProps) => {
   const { onChange } = props;
@@ -21,19 +15,30 @@ const TwitchSettings = (props: TwitchSettingsProps) => {
       DonatorVoice: donatorVoice,
       ModsOnly: modsOnly,
     });
-  }, [modsOnly, donatorVoice, onChange]);
+  }, [modsOnly, donatorVoice]);
 
   return (
-    <>
-      <Label
-        control={<Checkbox onChange={() => setModsOnly(!modsOnly)} />}
-        label="Mods only"
-      />
-      <Label
-        control={<Checkbox onChange={() => setDonatorVoice(!donatorVoice)} />}
-        label="Give Subs/Donator's better voice (costs more)"
-      />
-    </>
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold mb-4">⚙️ Stream Settings</h3>
+      <div className="space-y-3">
+        <label className="flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            onChange={() => setModsOnly(!modsOnly)}
+            className="gaming-checkbox"
+          />
+          <span className="text-gray-200">🛡️ Moderators Only</span>
+        </label>
+        <label className="flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            onChange={() => setDonatorVoice(!donatorVoice)}
+            className="gaming-checkbox"
+          />
+          <span className="text-gray-200">💎 Premium Voices for Subs/Donors</span>
+        </label>
+      </div>
+    </div>
   );
 };
 

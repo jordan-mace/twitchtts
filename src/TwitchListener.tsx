@@ -1,8 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ChatUserstate, Client } from "tmi.js";
-import styled from "styled-components";
-import Button from "@mui/material/Button";
-import { Box, TextField } from "@mui/material";
+
+
 import { TwitchContext } from "./TwitchContext";
 
 export interface TwitchMessage {
@@ -13,13 +12,6 @@ export interface TwitchMessage {
   play: boolean;
 }
 
-const UsernameBox = styled(TextField)`
-  width: 100%;
-`;
-const ListenButton = styled(Button)`
-  width: 100%;
-  margin-bottom: 3rem;
-`;
 
 export interface TwitchListenerProps {
   onMessage: (message: TwitchMessage) => void;
@@ -77,24 +69,26 @@ const TwitchListener = (props: TwitchListenerProps) => {
       });
     });
     setButtonDisabled(true);
-  }, [tmiClient, onMessage, ModsOnly]);
+  }, [tmiClient, ModsOnly]);
 
   return (
-    <Box sx={{ "& .MuiTextField-root": { mb: 1 } }}>
-      <h2>Enter your Twitch username</h2>
-      <UsernameBox
-        fullWidth
-        variant="outlined"
+    <div>
+      <h2 className="text-2xl font-bold mb-4 twitch-purple">🎮 Connect to Twitch</h2>
+      <p className="text-gray-300 mb-4">Enter the Twitch channel name you want to listen to</p>
+      <input
+        type="text"
+        placeholder="Enter Twitch username..."
         onChange={(event) => setTwitchName(event.target.value)}
+        className="gaming-input mb-8"
       />
-      <ListenButton
-        variant="contained"
+      <button
         disabled={buttonDisabled}
         onClick={startListening}
+        className="gaming-button mb-6"
       >
-        Start listening
-      </ListenButton>
-    </Box>
+        {buttonDisabled ? "🔗 Connected" : "🚀 Start Listening"}
+      </button>
+    </div>
   );
 };
 

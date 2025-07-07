@@ -1,9 +1,12 @@
 services:
   twitchtts:
-    image: jordz0005/twitchtts
-    environment:
-      - REACT_APP_AWS_SECRET_KEY
-      - REACT_APP_AWS_ACCESS_KEY
-      - REACT_APP_AWS_REGION
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_AWS_REGION=${VITE_AWS_REGION}
+        - VITE_AWS_ACCESS_KEY=${VITE_AWS_ACCESS_KEY}
+        - VITE_AWS_SECRET_KEY=${VITE_AWS_SECRET_KEY}
+    env_file: .env
     ports:
-      - 3000:3000
+      - 3000:80

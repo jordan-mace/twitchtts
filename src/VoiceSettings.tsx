@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { MenuItem, Select } from "@mui/material";
 import { Voice } from "@aws-sdk/client-polly";
 
 export interface VoiceSettingsProps {
@@ -31,34 +30,57 @@ const VoiceSettings = (props: VoiceSettingsProps) => {
   }, [currentVoice, currentUser, pollyVoices, voices, onChange]);
 
   return Object.entries(voices).length > 0 ? (
-    <>
-      <h3>Manual Voices</h3>
-      <Select
-        fullWidth
-        sx={{ mt: "2rem", mb: "2rem" }}
-        label="Chatters"
-        value={currentUser}
-        onChange={(event) => setCurrentUser(event.target.value)}
-      >
-        {Object.keys(voices).map((x) => (
-          <MenuItem value={x}>{x}</MenuItem>
-        ))}
-      </Select>
-      <Select
-        sx={{ mb: "2rem" }}
-        fullWidth
-        label="Voice"
-        value={currentVoice}
-        onChange={(event) => setCurrentVoice(event.target.value)}
-      >
-        {props.pollyVoices.map((x) => (
-          <MenuItem value={x.Id}>
-            {x.Name} ({x.SupportedEngines?.join()})
-          </MenuItem>
-        ))}
-      </Select>
-    </>
-  ) : null;
+    <div>
+      <h3 className="text-2xl font-bold mb-4 twitch-purple">🎤 Voice Customization</h3>
+      <p className="text-gray-300 mb-6">Assign specific voices to your chatters</p>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            👤 Select Chatter
+          </label>
+          <select
+            className="gaming-select"
+            aria-label="Chatters"
+            value={currentUser}
+            onChange={(event) => setCurrentUser(event.target.value)}
+          >
+            <option value="" disabled>Choose a chatter...</option>
+            {Object.keys(voices).map((x) => (
+              <option key={x} value={x}>{x}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            🔊 Select Voice
+          </label>
+          <select
+            className="gaming-select"
+            aria-label="Voice"
+            value={currentVoice}
+            onChange={(event) => setCurrentVoice(event.target.value)}
+          >
+            <option value="" disabled>Choose a voice...</option>
+            {props.pollyVoices.map((x) => (
+              <option key={x.Id} value={x.Id}>
+                {x.Name} ({x.SupportedEngines?.join(", ")})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="text-center py-8">
+      <h3 className="text-2xl font-bold mb-4 twitch-purple">🎤 Voice Customization</h3>
+      <div className="text-gray-400">
+        <p className="mb-2">No chatters yet!</p>
+        <p className="text-sm">Connect to a Twitch channel and wait for messages to customize voices</p>
+      </div>
+    </div>
+  );
 };
 
 export default VoiceSettings;

@@ -5,23 +5,20 @@
   "dependencies": {
     "@aws-sdk/client-polly": "^3.758.0",
     "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/material": "^6.4.7",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.2.0",
     "dotenv": "^16.4.7",
     "path": "^0.12.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "serve": "^14.2.4",
-    "styled-components": "^6.1.15",
     "tmi.js": "^1.8.5",
-    "typescript": "^4.9.5",
     "web-vitals": "^4.2.4"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "serve": "serve -s build"
+    "serve": "vite serve"
   },
   "eslintConfig": {
     "extends": [
@@ -43,6 +40,7 @@
   },
   "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af",
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
@@ -52,6 +50,11 @@
     "@types/react-dom": "^19.0.4",
     "@types/tmi.js": "^1.8.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "serve": "^14.2.4",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^4.9.5",
     "vite": "^7.0.0"
   }
 }

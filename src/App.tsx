@@ -7,18 +7,9 @@ import {
 } from "@aws-sdk/client-polly";
 import TwitchListener, { TwitchMessage } from "./TwitchListener";
 import { pollyClient } from "./Polly";
-import styled from "styled-components";
 import { Twitch, TwitchContext } from "./TwitchContext";
 import TwitchSettings from "./TwitchSettings";
 import VoiceSettings from "./VoiceSettings";
-import { Container } from "@mui/material";
-
-const ChatBox = styled("div")`
-  height: 500px;
-  overflow-y: scroll;
-  padding-left: 0;
-  list-style-type: none;
-`;
 
 const App: React.FC = () => {
   const [twitchChat, setTwitchChat] = useState<TwitchMessage[]>([]);
@@ -152,35 +143,59 @@ const App: React.FC = () => {
   };
 
   return (
-    <Container sx={{ mt: "5rem" }}>
+    <div className="min-h-screen p-6">
       <TwitchContext.Provider value={twitch}>
-        <div className="App">
-          <TwitchListener
-            onMessage={(message: TwitchMessage) => processMessage(message)}
-          />
-          <TwitchSettings onChange={(twitch: Twitch) => setTwitch(twitch)} />
-          <div style={{ flexDirection: "row", display: "flex" }}>
-            <div style={{ width: "50%" }}>
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2">
+              <span className="twitch-purple">Twitch</span> Voice Bot
+            </h1>
+            <p className="text-gray-300">Transform your stream with AI-powered text-to-speech</p>
+          </div>
+
+          {/* Main Connection Card */}
+          <div className="gaming-card max-w-3xl mb-16">
+            <TwitchListener
+              onMessage={(message: TwitchMessage) => processMessage(message)}
+            />
+            <TwitchSettings onChange={(twitch: Twitch) => setTwitch(twitch)} />
+          </div>
+
+          {/* Content Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-2 gap-8">
+            {/* Voice Settings */}
+            <div className="gaming-card">
               <VoiceSettings
                 pollyVoices={pollyVoices}
                 twitchVoices={twitchVoices}
                 onChange={(voices) => setTwitchVoices(voices)}
               />
             </div>
-            <div style={{ width: "50%" }}>
-              <h3>Chat</h3>
-              <ChatBox>
-                {twitchChat.map((x) => (
-                  <p key={x.id}>
-                    {x.username}: {x.message}
-                  </p>
-                ))}
-              </ChatBox>
+
+            {/* Chat Display */}
+            <div className="gaming-card">
+              <h3 className="text-center py-8 twitch-purple">Live Chat</h3>
+              <div className="h-96 overflow-y-scroll max-h-400 space-y-2 pr-2">
+                {twitchChat.length === 0 ? (
+                  <div className="text-center text-gray-400 py-8">
+                    <p>No messages yet...</p>
+                    <p className="text-sm">Connect to a Twitch channel to see chat messages</p>
+                  </div>
+                ) : (
+                  twitchChat.map((x) => (
+                    <div key={x.id} className="chat-message">
+                      <span className="font-semibold twitch-purple">{x.username}: </span>
+                      <span className="ml-2">{x.message}</span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
       </TwitchContext.Provider>
-    </Container>
+    </div>
   );
 };
 
