@@ -6,6 +6,8 @@ const {
   VITE_AWS_SECRET_KEY,
 } = import.meta.env;
 
+export const { VITE_BUILD_ID } = import.meta.env;
+
 if (!VITE_AWS_REGION || !VITE_AWS_ACCESS_KEY || !VITE_AWS_SECRET_KEY) {
 
   if (!VITE_AWS_REGION) {

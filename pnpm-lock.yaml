@@ -23,6 +23,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
+      hooks-ts:
+        specifier: ^0.12.0
+        version: 0.12.0(react@19.0.0)
       path:
         specifier: ^0.12.7
         version: 0.12.7
@@ -1497,6 +1500,11 @@ packages:
 
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
+
+  hooks-ts@0.12.0:
+    resolution: {integrity: sha512-XAmc4Jwx0uQ/xJ3+PmihhzQZnO1o8qPDmgWodcZZzfxHZynRQhI/qeEKSoqHD62tRqhHsX6QU47xErtPCKE31A==}
+    peerDependencies:
+      react: ^16.8.0  || ^17 || ^18 || ^19 || ^19.0.0-rc
 
   human-signals@2.1.0:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
@@ -4009,6 +4017,10 @@ snapshots:
   hoist-non-react-statics@3.3.2:
     dependencies:
       react-is: 16.13.1
+
+  hooks-ts@0.12.0(react@19.0.0):
+    dependencies:
+      react: 19.0.0
 
   human-signals@2.1.0: {}
 

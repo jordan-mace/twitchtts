@@ -1,8 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChatUserstate, Client } from "tmi.js";
-
-
-import { TwitchContext } from "./TwitchContext";
+import { Twitch } from "./TwitchContext";
 
 export interface TwitchMessage {
   username: string | undefined;
@@ -14,13 +12,13 @@ export interface TwitchMessage {
 
 
 export interface TwitchListenerProps {
+  twitchSettings: Twitch
   onMessage: (message: TwitchMessage) => void;
 }
 
 const TwitchListener = (props: TwitchListenerProps) => {
-  const { onMessage } = props;
-  const twitchSettings = useContext(TwitchContext);
-  const { ModsOnly } = twitchSettings;
+  const { onMessage, twitchSettings } = props;
+  const { ModsOnly, BitsOnly, SubsOnly } = twitchSettings;
   const [twitchName, setTwitchName] = useState("");
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [tmiClient, setTmiClient] = useState<null | Client>(null);
@@ -45,12 +43,28 @@ const TwitchListener = (props: TwitchListenerProps) => {
     tags.badges?.moderator === "1" ||
     tags.badges?.global_mod === "1";
 
+
+  const isCommand = (message: string) => message.startsWith('!')
+
+  const isLikelyBot = (tags: ChatUserstate) => 
+    tags.username === "Nightbot" ||
+    tags.username === "Streamlabs"
+
+  const hasBits = (tags: ChatUserstate) => 
+    tags.bits !== undefined
+
+  const isSubbed = (tags: ChatUserstate) =>
+    tags.subscriber
+
   useEffect(() => {
     if (!tmiClient) return;
     tmiClient.connect();
     tmiClient.on("message", (channel, tags, message, self) => {
       if (self) return;
       if (ModsOnly && !isMod(tags)) return;
+      if (BitsOnly && !hasBits(tags)) return;
+      if (SubsOnly && !isSubbed(tags)) return;
+      if (isCommand(message) || isLikelyBot(tags)) return;
       onMessage({
         username: tags.username,
         id: tags.id,
@@ -62,7 +76,7 @@ const TwitchListener = (props: TwitchListenerProps) => {
     tmiClient.on("connected", () => {
       onMessage({
         username: "SYSTEM",
-        id: "connect",
+        id: `connect.${Date.now()}`,
         isSubbed: false,
         message: "Connected to Twitch!",
         play: false,

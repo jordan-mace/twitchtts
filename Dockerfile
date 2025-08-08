@@ -3,6 +3,7 @@ FROM node:slim AS builder
 ARG VITE_AWS_REGION
 ARG VITE_AWS_ACCESS_KEY
 ARG VITE_AWS_SECRET_KEY
+ARG VITE_BUILD_ID
 
 # Install pnpm
 RUN npm install -g pnpm

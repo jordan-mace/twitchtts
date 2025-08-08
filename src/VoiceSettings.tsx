@@ -63,8 +63,8 @@ const VoiceSettings = (props: VoiceSettingsProps) => {
             onChange={(event) => setCurrentVoice(event.target.value)}
           >
             <option value="" disabled>Choose a voice...</option>
-            {props.pollyVoices.map((x) => (
-              <option key={x.Id} value={x.Id}>
+            {props.pollyVoices.map((x, index) => (
+              <option key={index} value={x.Id}>
                 {x.Name} ({x.SupportedEngines?.join(", ")})
               </option>
             ))}

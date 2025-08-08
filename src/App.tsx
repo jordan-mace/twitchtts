@@ -6,23 +6,25 @@ import {
   DescribeVoicesCommand,
 } from "@aws-sdk/client-polly";
 import TwitchListener, { TwitchMessage } from "./TwitchListener";
-import { pollyClient } from "./Polly";
-import { Twitch, TwitchContext } from "./TwitchContext";
+import { pollyClient, VITE_BUILD_ID } from "./Polly";
+import { Twitch } from "./TwitchContext";
 import TwitchSettings from "./TwitchSettings";
 import VoiceSettings from "./VoiceSettings";
+import { useLocalStorage } from "hooks-ts";
 
 const App: React.FC = () => {
   const [twitchChat, setTwitchChat] = useState<TwitchMessage[]>([]);
-  const [twitch, setTwitch] = useState<Twitch>({
+  const [twitch, setTwitch] = useLocalStorage<Twitch>("settings", {
     ModsOnly: false,
     DonatorVoice: false,
+    SubsOnly: false,
+    BitsOnly: false
   });
-  const [pollyVoices, setPollyVoices] = useState<Voice[]>([]);
-  const [twitchVoices, setTwitchVoices] = useState<Record<string, Voice>>({});
+  const [pollyVoices, setPollyVoices] = useLocalStorage<Voice[]>("polly", []);
+  const [twitchVoices, setTwitchVoices] = useLocalStorage<Record<string, Voice>>("voices", {});
 
   const TTS = (
     message: string,
-    isSubbed: boolean | undefined,
     pollyVoice: Voice
   ) => {
     if (pollyVoice.SupportedEngines === undefined) {
@@ -55,6 +57,8 @@ const App: React.FC = () => {
 
   // Load Polly voices
   useEffect(() => {
+    if(pollyVoices.length > 0) return;
+    
     var voices: Voice[] = [];
 
     pollyClient
@@ -74,19 +78,6 @@ const App: React.FC = () => {
       .send(
         new DescribeVoicesCommand({
           Engine: "neural",
-          LanguageCode: "en-US",
-          IncludeAdditionalLanguageCodes: true,
-        })
-      )
-      .then((result) => {
-        if (result.Voices) voices.push(...result.Voices);
-        else console.log("Could not get voices from Polly!");
-      });
-
-    pollyClient
-      .send(
-        new DescribeVoicesCommand({
-          Engine: "generative",
           LanguageCode: "en-US",
           IncludeAdditionalLanguageCodes: true,
         })
@@ -139,12 +130,11 @@ const App: React.FC = () => {
     if (message.username === "nightbot") return;
     if (message.message.startsWith("!")) return;
 
-    TTS(message.message, message.isSubbed, getVoice(message));
+    TTS(message.message, getVoice(message));
   };
 
   return (
     <div className="min-h-screen p-6">
-      <TwitchContext.Provider value={twitch}>
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
@@ -152,14 +142,16 @@ const App: React.FC = () => {
               <span className="twitch-purple">Twitch</span> Voice Bot
             </h1>
             <p className="text-gray-300">Transform your stream with AI-powered text-to-speech</p>
+            <p className="text-gray-300">Build {VITE_BUILD_ID}</p>
           </div>
 
           {/* Main Connection Card */}
           <div className="gaming-card max-w-3xl mb-16">
             <TwitchListener
+              twitchSettings={twitch}
               onMessage={(message: TwitchMessage) => processMessage(message)}
             />
-            <TwitchSettings onChange={(twitch: Twitch) => setTwitch(twitch)} />
+            <TwitchSettings settings={twitch} onChange={(twitch: Twitch) => setTwitch(twitch)} />
           </div>
 
           {/* Content Grid */}
@@ -194,7 +186,6 @@ const App: React.FC = () => {
             </div>
           </div>
         </div>
-      </TwitchContext.Provider>
     </div>
   );
 };
