@@ -1,6 +1,1 @@
-export interface Twitch {
-    ModsOnly: boolean,
-    SubsOnly: boolean,
-    BitsOnly: boolean,
-    DonatorVoice: boolean
-}
+import { Twitch } from "./types";
