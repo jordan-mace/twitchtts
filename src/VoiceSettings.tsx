@@ -1,26 +1,26 @@
 import { useEffect, useState } from "react";
-import { Voice } from "@aws-sdk/client-polly";
+import { GetVoice } from "@speechify/api/api/resources/tts";
 
 export interface VoiceSettingsProps {
-  pollyVoices: Voice[];
-  twitchVoices: Record<string, Voice>;
-  onChange: (voices: Record<string, Voice>) => void;
+  pollyVoices: GetVoice[];
+  twitchVoices: Record<string, GetVoice>;
+  onChange: (voices: Record<string, GetVoice>) => void;
 }
 
 const VoiceSettings = (props: VoiceSettingsProps) => {
   const { twitchVoices, pollyVoices, onChange } = props;
   const [currentUser, setCurrentUser] = useState("");
   const [currentVoice, setCurrentVoice] = useState("");
-  const [voices, setVoices] = useState<Record<string, Voice>>(twitchVoices);
+  const [voices, setVoices] = useState<Record<string, GetVoice>>(twitchVoices);
 
   useEffect(() => {
     if (voices[currentUser] === undefined) return;
-    if (voices[currentUser].Id === undefined) return;
-    setCurrentVoice(voices[currentUser].Id ?? "");
+    if (voices[currentUser].id === undefined) return;
+    setCurrentVoice(voices[currentUser].id ?? "");
   }, [currentUser, voices]);
 
   useEffect(() => {
-    var newVoice = pollyVoices.find((x) => x.Id === currentVoice);
+    var newVoice = pollyVoices.find((x) => x.id === currentVoice);
     if (newVoice === undefined) return;
 
     var newVoices = voices;
@@ -64,8 +64,8 @@ const VoiceSettings = (props: VoiceSettingsProps) => {
           >
             <option value="" disabled>Choose a voice...</option>
             {props.pollyVoices.map((x, index) => (
-              <option key={index} value={x.Id}>
-                {x.Name} ({x.SupportedEngines?.join(", ")})
+              <option key={index} value={x.id}>
+                {x.displayName}
               </option>
             ))}
           </select>

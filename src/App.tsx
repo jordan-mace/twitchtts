@@ -1,16 +1,12 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { Voice } from "@aws-sdk/client-polly";
-import {
-  SynthesizeSpeechCommand,
-  DescribeVoicesCommand,
-} from "@aws-sdk/client-polly";
 import TwitchListener, { TwitchMessage } from "./TwitchListener";
-import { pollyClient, VITE_BUILD_ID } from "./Polly";
+import { speechifyClient, VITE_BUILD_ID } from "./Polly";
 import { Twitch } from "./TwitchContext";
 import TwitchSettings from "./TwitchSettings";
 import VoiceSettings from "./VoiceSettings";
 import { useLocalStorage } from "hooks-ts";
+import { GetVoice } from "@speechify/api/api/resources/tts";
 
 const App: React.FC = () => {
   const [twitchChat, setTwitchChat] = useState<TwitchMessage[]>([]);
@@ -20,83 +16,43 @@ const App: React.FC = () => {
     SubsOnly: false,
     BitsOnly: false
   });
-  const [pollyVoices, setPollyVoices] = useLocalStorage<Voice[]>("polly", []);
-  const [twitchVoices, setTwitchVoices] = useLocalStorage<Record<string, Voice>>("voices", {});
+
+  const [speechifyVoices, setSpeechifyVoices] = useLocalStorage<GetVoice[]>("polly", []);
+  const [twitchVoices, setTwitchVoices] = useLocalStorage<Record<string, GetVoice>>("voices", {});
 
   const TTS = (
     message: string,
-    pollyVoice: Voice
+    speechifyVoice: GetVoice
   ) => {
-    if (pollyVoice.SupportedEngines === undefined) {
-      console.log(`Undefined engine for pollyVoice ${pollyVoice.Id}`);
-      return;
-    }
-
-    pollyClient
-      .send(
-        new SynthesizeSpeechCommand({
-          Engine: pollyVoice.SupportedEngines[0],
-          OutputFormat: "mp3",
-          Text: message,
-          VoiceId: pollyVoice.Id,
-        })
-      )
-      .then((output) => {
-        if (!output.AudioStream) return;
-        return output.AudioStream?.transformToByteArray();
-      })
-      .then((array) => {
-        if (!array) return;
-        const audio = new Audio();
-        var blob = new Blob([array], { type: "audio/mp3" });
-        var url = window.URL.createObjectURL(blob);
-        audio.src = url;
-        audio.play().then(() => audio.remove());
-      });
+    speechifyClient.tts.audio.speech({
+      input: message,
+      voiceId: speechifyVoice.id,
+      audioFormat: "mp3"
+    })
+    .then((response) => response.audioData)
+    .then((audioData) => {
+      const audio = new Audio("data:audio/mp3;base64," + audioData);
+      audio.play().then(() => audio.remove());
+    })
   };
 
   // Load Polly voices
   useEffect(() => {
-    if(pollyVoices.length > 0) return;
-    
-    var voices: Voice[] = [];
+    if(speechifyVoices.length > 0) return;
 
-    pollyClient
-      .send(
-        new DescribeVoicesCommand({
-          Engine: "standard",
-          LanguageCode: "en-US",
-          IncludeAdditionalLanguageCodes: true,
-        })
-      )
-      .then((result) => {
-        if (result.Voices) voices.push(...result.Voices);
-        else console.log("Could not get voices from Polly!");
-      });
+    const getVoices = async() => {
+      const voices = await speechifyClient.tts.voices.list();
+      setSpeechifyVoices(voices);
+      return voices;
+    }
 
-    pollyClient
-      .send(
-        new DescribeVoicesCommand({
-          Engine: "neural",
-          LanguageCode: "en-US",
-          IncludeAdditionalLanguageCodes: true,
-        })
-      )
-      .then((result) => {
-        if (result.Voices) voices.push(...result.Voices);
-        else console.log("Could not get voices from Polly!");
-      });
-
-    setPollyVoices(voices);
+    getVoices();
   }, []);
 
-  const pickRandomVoice = (isSubbed: boolean, Voices: Voice[]) => {
+  const pickRandomVoice = (isSubbed: boolean, Voices: GetVoice[]) => {
     if (isSubbed && twitch.DonatorVoice) {
-      const filtered = Voices.filter((x) =>
-        x.SupportedEngines?.includes("generative")
-      );
-      const randomVoice = Math.floor(Math.random() * filtered.length - 1);
-      return filtered[randomVoice];
+      const randomVoice = Math.floor(Math.random() * Voices.length - 1);
+      return Voices[randomVoice];
     }
 
     const randomVoice = Math.floor(Math.random() * Voices.length - 1);
@@ -105,21 +61,22 @@ const App: React.FC = () => {
 
   const getVoice = (message: TwitchMessage) => {
     const username = message.username;
-    if (username === undefined) return pollyVoices[0];
+    if (username === undefined) 
+      return speechifyVoices[0];
 
     const isSubbed = message.isSubbed;
     const voice = twitchVoices[username];
 
     if (voice === undefined) {
-      var randomVoice = pickRandomVoice(isSubbed, pollyVoices);
-      console.log(`Giving ${username} the ${randomVoice.Name} voice`);
+      var randomVoice = pickRandomVoice(isSubbed, speechifyVoices);
+      console.log(`Giving ${username} the ${randomVoice.displayName} voice`);
       var newArray = twitchVoices;
       newArray[username] = randomVoice;
       setTwitchVoices(newArray);
       return randomVoice;
     }
 
-    console.log(`found voice ${voice.Name} for ${username}`);
+    console.log(`found voice ${voice.displayName} for ${username}`);
     return voice;
   };
 
@@ -159,7 +116,7 @@ const App: React.FC = () => {
             {/* Voice Settings */}
             <div className="gaming-card">
               <VoiceSettings
-                pollyVoices={pollyVoices}
+                pollyVoices={speechifyVoices}
                 twitchVoices={twitchVoices}
                 onChange={(voices) => setTwitchVoices(voices)}
               />

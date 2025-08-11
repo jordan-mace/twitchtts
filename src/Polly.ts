@@ -1,14 +1,16 @@
 import { PollyClient } from "@aws-sdk/client-polly";
+import { SpeechifyClient } from "@speechify/api";
 
 const {
   VITE_AWS_REGION,
   VITE_AWS_ACCESS_KEY,
   VITE_AWS_SECRET_KEY,
+  VITE_SPEECHIFY_KEY
 } = import.meta.env;
 
 export const { VITE_BUILD_ID } = import.meta.env;
 
-if (!VITE_AWS_REGION || !VITE_AWS_ACCESS_KEY || !VITE_AWS_SECRET_KEY) {
+if (!VITE_AWS_REGION || !VITE_AWS_ACCESS_KEY || !VITE_AWS_SECRET_KEY || !VITE_SPEECHIFY_KEY ) {
 
   if (!VITE_AWS_REGION) {
     console.error("VITE_AWS_REGION is not set.");
@@ -33,3 +35,5 @@ export const pollyClient = new PollyClient({
     secretAccessKey: VITE_AWS_SECRET_KEY
   },
 });
+
+export const speechifyClient = new SpeechifyClient({ token: VITE_SPEECHIFY_KEY });
