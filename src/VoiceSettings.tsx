@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { GetVoice } from "@speechify/api/api/resources/tts";
+import Select from "react-select";
 
 export interface VoiceSettingsProps {
   pollyVoices: GetVoice[];
@@ -29,6 +30,8 @@ const VoiceSettings = (props: VoiceSettingsProps) => {
     onChange(voices);
   }, [currentVoice, currentUser, pollyVoices, voices, onChange]);
 
+  const voiceObjects = props.pollyVoices.sort((x, y) => x.displayName.localeCompare(y.displayName)).map((x) => { return { value: x.id, label: x.displayName } })
+
   return Object.entries(voices).length > 0 ? (
     <div>
       <h3 className="text-2xl font-bold mb-4 twitch-purple">🎤 Voice Customization</h3>
@@ -46,7 +49,7 @@ const VoiceSettings = (props: VoiceSettingsProps) => {
             onChange={(event) => setCurrentUser(event.target.value)}
           >
             <option value="" disabled>Choose a chatter...</option>
-            {Object.keys(voices).map((x) => (
+            {Object.keys(voices).sort().map((x) => (
               <option key={x} value={x}>{x}</option>
             ))}
           </select>
@@ -56,19 +59,12 @@ const VoiceSettings = (props: VoiceSettingsProps) => {
           <label className="block text-sm font-medium text-gray-300 mb-2">
             🔊 Select Voice
           </label>
-          <select
-            className="gaming-select"
-            aria-label="Voice"
-            value={currentVoice}
-            onChange={(event) => setCurrentVoice(event.target.value)}
-          >
-            <option value="" disabled>Choose a voice...</option>
-            {props.pollyVoices.map((x, index) => (
-              <option key={index} value={x.id}>
-                {x.displayName}
-              </option>
-            ))}
-          </select>
+          <Select
+          classNames={{ menuList: (state) => "gaming-select" }}
+          options={voiceObjects}
+          aria-label="Voice"
+          onChange={(event) => event && setCurrentVoice(event?.value)}
+          />
         </div>
       </div>
     </div>
