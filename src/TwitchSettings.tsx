@@ -1,39 +1,69 @@
 import { useEffect, useState } from "react";
-import styled from "styled-components";
-import { Checkbox, FormControlLabel } from "@mui/material";
 import { Twitch } from "./TwitchContext";
 
 export interface TwitchSettingsProps {
+  settings: Twitch;
   onChange: (settings: Twitch) => void;
 }
 
-const Label = styled(FormControlLabel)`
-  width: 100%;
-`;
-
 const TwitchSettings = (props: TwitchSettingsProps) => {
-  const { onChange } = props;
-  const [modsOnly, setModsOnly] = useState(false);
-  const [donatorVoice, setDonatorVoice] = useState(false);
+  const { onChange, settings } = props;
+  const [modsOnly, setModsOnly] = useState(settings.ModsOnly);
+  const [donatorVoice, setDonatorVoice] = useState(settings.DonatorVoice);
+  const [subsOnly, setSubsOnly] = useState(settings.SubsOnly);
+  const [bitsOnly, setBitsOnly] = useState(settings.BitsOnly);
 
   useEffect(() => {
     onChange({
       DonatorVoice: donatorVoice,
       ModsOnly: modsOnly,
+      SubsOnly: subsOnly,
+      BitsOnly: bitsOnly
     });
-  }, [modsOnly, donatorVoice, onChange]);
+  }, [modsOnly, donatorVoice, subsOnly, bitsOnly]);
 
-  return (
-    <>
-      <Label
-        control={<Checkbox onChange={() => setModsOnly(!modsOnly)} />}
-        label="Mods only"
-      />
-      <Label
-        control={<Checkbox onChange={() => setDonatorVoice(!donatorVoice)} />}
-        label="Give Subs/Donator's better voice (costs more)"
-      />
-    </>
+  return settings && (
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold mb-4">⚙️ Stream Settings</h3>
+      <div className="space-y-3">
+        <label className="flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={modsOnly}
+            onChange={() => setModsOnly(!modsOnly)}
+            className="gaming-checkbox"
+          />
+          <span className="text-gray-200">🛡️ Moderators Only</span>
+        </label>
+        <label className="flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={donatorVoice}
+            onChange={() => setDonatorVoice(!donatorVoice)}
+            className="gaming-checkbox"
+          />
+          <span className="text-gray-200">💎 Premium Voices for Subs/Donors</span>
+        </label>
+                <label className="flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={bitsOnly}
+            onChange={() => setBitsOnly(!bitsOnly)}
+            className="gaming-checkbox"
+          />
+          <span className="text-gray-200">💰 Only TTS messages with Bits</span>
+        </label>
+                <label className="flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={subsOnly}
+            onChange={() => setSubsOnly(!subsOnly)}
+            className="gaming-checkbox"
+          />
+          <span className="text-gray-200">🗣️ Subs only</span>
+        </label>
+      </div>
+    </div>
   );
 };
 
