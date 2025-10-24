@@ -55,7 +55,7 @@ const App: React.FC = () => {
       .then((array) => {
         if (!array) return;
         const audio = new Audio();
-        var blob = new Blob([array], { type: "audio/mp3" });
+        var blob = new Blob([array.buffer as ArrayBuffer], { type: "audio/mp3" });
         var url = window.URL.createObjectURL(blob);
         audio.src = url;
         audio.play().then(() => audio.remove());
